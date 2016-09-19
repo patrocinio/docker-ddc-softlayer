@@ -1,0 +1,21 @@
+---
+- hosts: ucp-primary
+  vars:
+    kube_node: undefined
+  remote_user: root
+  tasks:
+  - name: Updating YUM
+    yum: yum: name=* state=latest
+
+  - name: Install GCC
+    yum: name=gcc state=latest
+
+  - name: check openssl version
+    shell: "openssl version"
+    ignore_errors: yes
+    register: openssl_version_query
+    tags: openssl
+
+  - script: install_open_ssl.sh
+    when: openssl_version_query.stdout.find('1.0.2h') == -1
+    tags: openssl
