@@ -133,22 +133,30 @@ function update_hosts_file {
   # Update ansible hosts file
   echo Updating ansible hosts files
   echo > $HOSTS
-  echo "[ucp]" >> $HOSTS
+  echo "[ucp-primary]" >> $HOSTS
   obtain_ip ${UCP_PREFIX}1
-  UCP1_IP=$IP_ADDRESS
-  for(( x=1; x <= ${NUM_UCPS}; x++))
+  export UCP1_IP=$IP_ADDRESS
+  echo "${UCP_PREFIX}1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+
+
+  echo "[ucp-secondary]" >> $HOSTS
+  for(( x=2; x <= ${NUM_UCPS}; x++))
   do
     obtain_ip "${UCP_PREFIX}${x}"
-    export NODE${x}_IP=$IP_ADDRESS
+    export UCP_${x}_IP=$IP_ADDRESS
     echo "${UCP_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   done
 
-  echo "[dtr]" >> $HOSTS
+  echo "[dtr-primary]" >> $HOSTS
+  export DTR1_IP=$IP_ADDRESS
+  echo "${DTR_PREFIX}1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+
+  echo "[dtr-secondary]" >> $HOSTS
   ## Echoes in the format of "dtr-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   for(( x=1; x <= ${NUM_DTRS}; x++))
   do
     obtain_ip "${DTR_PREFIX}${x}"
-    export NODE${x}_IP=$IP_ADDRESS
+    export DTR_${x}_IP=$IP_ADDRESS
     echo "${DTR_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   done
 }
@@ -203,6 +211,7 @@ function configure_ucp_primary {
 configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
 # Execute kube-master playbook
+set -x
 ansible-playbook -i $HOSTS ansible/ucp-primary.yaml
 }
 
@@ -281,8 +290,8 @@ create_dtrs
 update_hosts_file
 
 configure_ucp_primary
-configure_ucp_secondaries
-configure_dtr_primary
-configure_dtr_secondaries
+#configure_ucp_secondaries
+#configure_dtr_primary
+#configure_dtr_secondaries
 
 echo "Congratulations! You can log on to your Docker Data Center environment at https://$UCP1_IP"
