@@ -1,11 +1,11 @@
 ---
-- hosts: ucp-primary
+- hosts: dtr-secondary
   vars:
     kube_node: undefined
   remote_user: root
   tasks:
   - name: Updating YUM
-    yum: yum: name=* state=latest
+    yum: name=* state=latest
 
   - name: Install GCC
     yum: name=gcc state=latest
