@@ -170,7 +170,7 @@ function set_ssh_key {
   sshpass -p $1 ssh-copy-id -o 'StrictHostKeyChecking=no' root@$2
 }
 
-#Args: $1: master hostname $2: master IP
+#Args: $1: hostname $2: IP address
 function configure_ucp {
   # Get ucp password
   obtain_root_pwd $1
@@ -208,22 +208,14 @@ function configure_ucp {
 }
 
 function configure_ucp_primary {
-configure_ucp ${UCP_PREFIX}1 $UCP1_IP
+  configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
-# Execute kube-master playbook
-set -x
-ansible-playbook -i $HOSTS ansible/ucp-primary.yaml
-}
-
-function configure_ucp_secondaries {
-configure_ucp ${UCP_PREFIX}1 $UCP1_IP
-
-# Execute kube-master playbook
-ansible-playbook -i $HOSTS ansible/ucp-secondary.yaml
+  # Execute kube-master playbook
+  ansible-playbook -i $HOSTS ansible/ucp-primary.yaml
 }
 
 # Args $1 Node name
-function configure_dtr {
+function configure_node {
   echo Configuring node $1
 
   # Get ucp password
@@ -238,9 +230,20 @@ function configure_dtr {
   set_ssh_key $PASSWORD $NODE_IP
 }
 
+function configure_ucp_secondaries {
+  for(( x=2; x <= ${NUM_DTRS}; x++))
+  do
+    obtain_ip "${UCP_PREFIX}${x}"
+    configure_node "${UCP_PREFIX}${x}"
+  done
+
+  # Execute kube-master playbook
+  ansible-playbook -i $HOSTS ansible/ucp-secondary.yaml
+}
+
 function configure_dtr_primary {
 echo Configuring nodes
-configure_dtr "${DTR_PREFIX}1"
+configure_node "${DTR_PREFIX}1"
 
 # Execute kube-master playbook
 ansible-playbook -i $HOSTS ansible/dtr-primary.yaml
@@ -250,7 +253,7 @@ function configure_dtr_secondaries {
   echo Configuring nodes
   for(( x=2; x <= ${NUM_DTRS}; x++))
   do
-    configure_dtr "${DTR_PREFIX}${x}"
+    configure_node "${DTR_PREFIX}${x}"
   done
 
   # Execute kube-master playbook
@@ -289,8 +292,8 @@ create_dtrs
 
 update_hosts_file
 
-configure_ucp_primary
-#configure_ucp_secondaries
+#configure_ucp_primary
+configure_ucp_secondaries
 #configure_dtr_primary
 #configure_dtr_secondaries
 
