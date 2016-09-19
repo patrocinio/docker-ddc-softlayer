@@ -135,12 +135,17 @@ function update_hosts_file {
   echo > $HOSTS
   echo "[ucp]" >> $HOSTS
   obtain_ip ${UCP_PREFIX}1
-  MASTER1_IP=$IP_ADDRESS
-  echo "ucp-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+  UCP1_IP=$IP_ADDRESS
+  for(( x=1; x <= ${NUM_UCPS}; x++))
+  do
+    obtain_ip "${UCP_PREFIX}${x}"
+    export NODE${x}_IP=$IP_ADDRESS
+    echo "${UCP_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+  done
 
   echo "[dtr]" >> $HOSTS
   ## Echoes in the format of "dtr-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
-  for(( x=1; x <= ${NUM_NODES}; x++))
+  for(( x=1; x <= ${NUM_DTRS}; x++))
   do
     obtain_ip "${DTR_PREFIX}${x}"
     export NODE${x}_IP=$IP_ADDRESS
@@ -168,15 +173,19 @@ function configure_ucp {
   # Create inventory file
   INVENTORY=/tmp/inventory
   echo > $INVENTORY
-  echo "[masters]" >> $INVENTORY
-  echo "ucp-1" >> $INVENTORY
-  echo >> $INVENTORY
-  echo "[etcd]" >> $INVENTORY
-  echo "ucp-1" >> $INVENTORY
-  echo >> $INVENTORY
-  echo "[nodes]" >> $INVENTORY
+  echo "[ucps]" >> $INVENTORY
   ## Echoes in the format of "$NODE1_IP" >> $INVENTORY
-  for(( x=1; x <= ${NUM_NODES}; x++))
+  for(( x=1; x <= ${NUM_UCPS}; x++))
+  do
+    TMP1=$(echo \${NODE${x}_IP})
+    LOCAL_IP=$(eval echo ${TMP1})
+    echo "${LOCAL_IP}" >> ${INVENTORY}
+  done
+
+
+  echo "[dtrs]" >> $INVENTORY
+  ## Echoes in the format of "$NODE1_IP" >> $INVENTORY
+  for(( x=1; x <= ${NUM_DTRS}; x++))
   do
     TMP1=$(echo \${NODE${x}_IP})
     LOCAL_IP=$(eval echo ${TMP1})
@@ -190,11 +199,18 @@ function configure_ucp {
 
 }
 
-function configure_ucps {
-  configure_master ${UCP_PREFIX}1 $MASTER1_IP
+function configure_ucp_primary {
+configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
-  # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/ucp.yaml
+# Execute kube-master playbook
+ansible-playbook -i $HOSTS ansible/ucp-primary.yaml
+}
+
+function configure_ucp_secondaries {
+configure_ucp ${UCP_PREFIX}1 $UCP1_IP
+
+# Execute kube-master playbook
+ansible-playbook -i $HOSTS ansible/ucp-secondary.yaml
 }
 
 # Args $1 Node name
@@ -213,26 +229,37 @@ function configure_dtr {
   set_ssh_key $PASSWORD $NODE_IP
 }
 
-function configure_dtrs {
+function configure_dtr_primary {
+echo Configuring nodes
+configure_dtr "${DTR_PREFIX}1"
+
+# Execute kube-master playbook
+ansible-playbook -i $HOSTS ansible/dtr-primary.yaml
+}
+
+function configure_dtr_secondaries {
   echo Configuring nodes
-  for(( x=1; x <= ${NUM_NODES}; x++))
+  for(( x=2; x <= ${NUM_DTRS}; x++))
   do
     configure_dtr "${DTR_PREFIX}${x}"
   done
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/dtr.yaml
+  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml
 }
 
 function create_dtrs {
-  for(( x=1; x <= ${NUM_NODES}; x++))
+  for(( x=1; x <= ${NUM_DTRS}; x++))
   do
     create_node "${DTR_PREFIX}${x}"
   done
 }
 
 function create_ucps {
-  create_kube "${UCP_PREFIX}1"
+  for(( x=1; x <= ${NUM_UCPS}; x++))
+  do
+    create_node "${UCP_PREFIX}${x}"
+  done
 }
 
 # Authenticates to SL
@@ -253,7 +280,9 @@ create_dtrs
 
 update_hosts_file
 
-configure_ucps
-configure_dtrs
+configure_ucp_primary
+configure_ucp_secondaries
+configure_dtr_primary
+configure_dtr_secondaries
 
-echo "Congratulations! You can log on to your Docker Data Center environment at http://$UCP1_IP"
+echo "Congratulations! You can log on to your Docker Data Center environment at https://$UCP1_IP"

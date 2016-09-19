@@ -2,7 +2,7 @@
 #pip install --upgrade pip
 #pip install softlayer
 
-. ./kubernetes.cfg
+. ./docker-ddc.cfg
 
 # Authenticates to SL
 echo "[softlayer]" > ~/.softlayer
