@@ -14,7 +14,7 @@
     yum: name=perl state=latest
 
   - name: Install Old openssl
-    yum name:openssl state:latest
+    yum: name=openssl state=latest
 
   - name: check openssl version
     shell: "openssl version"
