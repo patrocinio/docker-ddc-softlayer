@@ -2,15 +2,15 @@
 # pip install --upgrade pip
 # pip install softlayer
 
-KUBE_MASTER_PREFIX=kube-master-
-KUBE_NODE_PREFIX=kube-node-
+UCP_PREFIX=ucp-
+DTR_PREFIX=dtr-
 HOSTS=/tmp/ansible-hosts
 
 # This var is not used anymore
 TIMEOUT=600
 PORT_SPEED=10
 
-. ./kubernetes.cfg
+. ./docker-ddc.cfg
 
 # Need to determine operating system for certain SL CLI commands
 PLATFORM_TYPE=$(uname)
@@ -69,13 +69,13 @@ function get_server_id {
 }
 
 # Args: $1: name
-function create_kube {
-  # Check whether kube master exists
-  TEMP_FILE=/tmp/deploy-kubernetes.out
+function create_node {
+  # Check whether ucp exists
+  TEMP_FILE=/tmp/deploy-ddc.out
   slcli $CLI_TYPE list --hostname $1 --domain $DOMAIN | grep $1 > $TEMP_FILE
   COUNT=`wc $TEMP_FILE | awk '{print $1}'`
 
-  # Determine whether to create the kube-master
+  # Determine whether to create the machine
   if [ $COUNT -eq 0 ]; then
   create_server $1
   else
@@ -84,7 +84,7 @@ function create_kube {
 
   get_server_id $1
 
-  # Wait kube master to be ready
+  # Wait machine to be ready
   while true; do
     echo "Waiting for $SERVER_MESSAGE $1 to be ready..."
     STATE=`slcli $CLI_TYPE detail $VS_ID | grep $STATUS_FIELD | awk '{print $2}'`
@@ -129,23 +129,22 @@ function obtain_ip {
   fi
 }
 
-# From the standpoint of ansible, kube-master-2 is a 'node'
 function update_hosts_file {
   # Update ansible hosts file
   echo Updating ansible hosts files
   echo > $HOSTS
-  echo "[kube-master]" >> $HOSTS
-  obtain_ip ${KUBE_MASTER_PREFIX}1
+  echo "[ucp]" >> $HOSTS
+  obtain_ip ${UCP_PREFIX}1
   MASTER1_IP=$IP_ADDRESS
-  echo "kube-master-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+  echo "ucp-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
 
-  echo "[kube-node]" >> $HOSTS
-  ## Echoes in the format of "kube-node-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+  echo "[dtr]" >> $HOSTS
+  ## Echoes in the format of "dtr-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   for(( x=1; x <= ${NUM_NODES}; x++))
   do
-    obtain_ip "${KUBE_NODE_PREFIX}${x}"
+    obtain_ip "${DTR_PREFIX}${x}"
     export NODE${x}_IP=$IP_ADDRESS
-    echo "${KUBE_NODE_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+    echo "${DTR_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   done
 }
 
@@ -159,8 +158,8 @@ function set_ssh_key {
 }
 
 #Args: $1: master hostname $2: master IP
-function configure_master {
-  # Get kube master password
+function configure_ucp {
+  # Get ucp password
   obtain_root_pwd $1
 
   # Set the SSH key
@@ -170,10 +169,10 @@ function configure_master {
   INVENTORY=/tmp/inventory
   echo > $INVENTORY
   echo "[masters]" >> $INVENTORY
-  echo "kube-master-1" >> $INVENTORY
+  echo "ucp-1" >> $INVENTORY
   echo >> $INVENTORY
   echo "[etcd]" >> $INVENTORY
-  echo "kube-master-1" >> $INVENTORY
+  echo "ucp-1" >> $INVENTORY
   echo >> $INVENTORY
   echo "[nodes]" >> $INVENTORY
   ## Echoes in the format of "$NODE1_IP" >> $INVENTORY
@@ -191,18 +190,18 @@ function configure_master {
 
 }
 
-function configure_masters {
-  configure_master ${KUBE_MASTER_PREFIX}1 $MASTER1_IP
+function configure_ucps {
+  configure_master ${UCP_PREFIX}1 $MASTER1_IP
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/kube-master.yaml
+  ansible-playbook -i $HOSTS ansible/ucp.yaml
 }
 
 # Args $1 Node name
-function configure_node {
+function configure_dtr {
   echo Configuring node $1
 
-  # Get kube master password
+  # Get ucp password
   obtain_root_pwd $1
 
   # Get master IP address
@@ -214,26 +213,26 @@ function configure_node {
   set_ssh_key $PASSWORD $NODE_IP
 }
 
-function configure_nodes {
+function configure_dtrs {
   echo Configuring nodes
   for(( x=1; x <= ${NUM_NODES}; x++))
   do
-    configure_node "${KUBE_NODE_PREFIX}${x}"
+    configure_dtr "${DTR_PREFIX}${x}"
   done
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/kube-node.yaml
+  ansible-playbook -i $HOSTS ansible/dtr.yaml
 }
 
-function create_nodes {
+function create_dtrs {
   for(( x=1; x <= ${NUM_NODES}; x++))
   do
-    create_kube "${KUBE_NODE_PREFIX}${x}"
+    create_node "${DTR_PREFIX}${x}"
   done
 }
 
-function create_masters {
-  create_kube "${KUBE_MASTER_PREFIX}1"
+function create_ucps {
+  create_kube "${UCP_PREFIX}1"
 }
 
 # Authenticates to SL
@@ -246,15 +245,15 @@ echo "timeout = 0" >> ~/.softlayer
 echo Using the following SoftLayer configuration
 slcli config show
 
-create_nodes
-create_masters
+create_ucps
+create_dtrs
 
 # Generate SSH key
 #yes | ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
 
 update_hosts_file
 
-configure_nodes
-configure_masters
+configure_ucps
+configure_dtrs
 
-echo "Congratulations! You can log on to the kube masters by issuing ssh root@$MASTER1_IP"
+echo "Congratulations! You can log on to your Docker Data Center environment at http://$UCP1_IP"
