@@ -36,4 +36,4 @@
     shell: "systemctl enable docker.service"
 
   - name: Start Docker Service
-    shell: "sudo systemctl start docker.service"
+    shell: "systemctl start docker.service"

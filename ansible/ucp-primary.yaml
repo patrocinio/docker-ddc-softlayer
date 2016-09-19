@@ -9,6 +9,9 @@
 
   - name: Install GCC
     yum: name=gcc state=latest
+  
+  - name: Install Perl
+    yum: name=perl state=lastest
 
   - name: check openssl version
     shell: "openssl version"
@@ -36,4 +39,4 @@
     shell: "systemctl enable docker.service"
 
   - name: Start Docker Service
-    shell: "sudo systemctl start docker.service"
+    shell: "systemctl start docker.service"
