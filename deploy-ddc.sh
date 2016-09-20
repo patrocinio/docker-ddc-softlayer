@@ -153,7 +153,7 @@ function update_hosts_file {
 
   echo "[dtr-secondary]" >> $HOSTS
   ## Echoes in the format of "dtr-1 ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
-  for(( x=1; x <= ${NUM_DTRS}; x++))
+  for(( x=2; x <= ${NUM_DTRS}; x++))
   do
     obtain_ip "${DTR_PREFIX}${x}"
     export DTR_${x}_IP=$IP_ADDRESS
@@ -295,6 +295,6 @@ update_hosts_file
 configure_ucp_primary
 configure_ucp_secondaries
 configure_dtr_primary
-#configure_dtr_secondaries
+configure_dtr_secondaries
 
 echo "Congratulations! You can log on to your Docker Data Center environment at https://$UCP1_IP"
