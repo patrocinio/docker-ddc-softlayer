@@ -167,6 +167,7 @@ function set_ssh_key {
   ssh-keygen -R $2
 
   # Log in to the machine
+
   sshpass -p $1 ssh-copy-id -o 'StrictHostKeyChecking=no' root@$2
 }
 

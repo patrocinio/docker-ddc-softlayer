@@ -5,7 +5,7 @@ cd /usr/local/src/
 wget https://www.openssl.org/source/openssl-1.0.2-latest.tar.gz
 
 tar -zxf openssl-1.0.2-latest.tar.gz
-cd openssl-1.0.2h/
+cd openssl-1.0.2*/
 
 ./config
 make

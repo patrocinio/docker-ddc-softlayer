@@ -22,7 +22,8 @@
     register: openssl_version_query
     tags: openssl
 
-  - script: install_open_ssl.sh
+  - name: Install Open SSL
+    script: install_open_ssl.sh
     when: openssl_version_query.stdout.find('1.0.2h') == -1
     tags: openssl
 

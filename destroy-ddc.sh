@@ -2,7 +2,7 @@
 #pip install --upgrade pip
 #pip install softlayer
 
-. ./kubernetes.cfg
+. ./docker-ddc.cfg
 
 # Authenticates to SL
 echo "[softlayer]" > ~/.softlayer
@@ -15,7 +15,7 @@ echo Using the following SoftLayer configuration
 slcli config show
 
 # Set the server type
-if [ $SERVER_TYPE  == "bare" ]; then
+if [ "$SERVER_TYPE"  == "bare" ]; then
   CLI_TYPE=server
 else
   CLI_TYPE=vs
