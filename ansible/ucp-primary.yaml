@@ -44,3 +44,26 @@
 
   - name: Start Docker Service
     shell: "systemctl start docker.service"
+
+  - name: Obtain IP address
+    shell: grep {{ ansible_fqdn }} /etc/hosts | awk '{print $1}'
+    register: host_ip
+
+  - debug: msg="the IP address is {{ host_ip.stdout }}"
+
+  - name: Obtain UCP Container ID
+    shell: docker ps | grep docker/ucp | grep -v docker/ucp- | awk '{print $1}'
+    register: container_id
+
+  - debug: msg="the container ID is {{ container_id.stdout }}"
+
+  - name: Stop existing UCP container
+    shell: 'docker kill {{ container_id.stdout }}'
+    ignore_errors: yes
+
+  - name: Delete existing UCP container
+    shell: 'docker rm {{ container_id.stdout }}'
+    ignore_errors: yes
+
+  - name: Install Docker UCP. It will take a few minutes...
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp install -i --host-address {{ host_ip.stdout }} --fresh-install'

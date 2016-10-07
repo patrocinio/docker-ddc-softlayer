@@ -213,7 +213,7 @@ function configure_ucp_primary {
   configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/ucp-primary.yaml
+  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml
 }
 
 # Args $1 Node name
@@ -295,8 +295,8 @@ create_dtrs
 update_hosts_file
 
 configure_ucp_primary
-configure_ucp_secondaries
-configure_dtr_primary
-configure_dtr_secondaries
+#configure_ucp_secondaries
+#configure_dtr_primary
+#configure_dtr_secondaries
 
-echo "Congratulations! You can log on to your Docker Data Center environment at https://$UCP1_IP"
+echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"
