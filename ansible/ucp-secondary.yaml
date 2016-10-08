@@ -1,9 +1,9 @@
 ---
 - hosts: ucp-secondary
-  vars:
-    kube_node: undefined
   remote_user: root
   tasks:
+  - debug: msg="UCP URL is {{ url }}"
+
   - name: Updating YUM
     yum: name=* state=latest
 
@@ -23,11 +23,11 @@
     tags: openssl
 
   - script: install_open_ssl.sh
-    when: openssl_version_query.stdout.find('1.0.2h') == -1
+    when: openssl_version_query.stdout.find('1.0.2j') == -1
     tags: openssl
 
   - name: Add Docker RPM Key
-    shell: 'sudo rpm --import "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e"'
+    shell: 'rpm --import "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e"'
     
   - name: Install YUM Utils
     yum: name=yum-utils state=latest
@@ -43,3 +43,13 @@
 
   - name: Start Docker Service
     shell: "systemctl start docker.service"
+
+  - name: Copy configuration file
+    copy: src=/tmp/backup.tar dest=/root/backup.tar
+
+  - name: Copy fingerprint
+    copy: src=/tmp/fingerprint dest=/root/fingerprint
+
+
+  - name: Install Docker UCP. It will take a few minutes...
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /root/backup.tar:/backup.tar docker/ucp join --replica --passphrase "dockerSecret2016" --url {{ url }} --fingerprint `cat /root/fingerprint`'

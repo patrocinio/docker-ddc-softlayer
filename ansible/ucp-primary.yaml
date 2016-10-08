@@ -24,7 +24,7 @@
 
   - name: Install Open SSL
     script: install_open_ssl.sh
-    when: openssl_version_query.stdout.find('1.0.2h') == -1
+    when: openssl_version_query.stdout.find('1.0.2j') == -1
     tags: openssl
 
   - name: Add Docker RPM Key
@@ -34,7 +34,7 @@
     yum: name=yum-utils state=latest
 
   - name: Update YUM Config Manager
-    shell: "sudo yum-config-manager --add-repo https://packages.docker.com/1.11/yum/repo/main/centos/7"
+    shell: "yum-config-manager --add-repo https://packages.docker.com/1.11/yum/repo/main/centos/7"
 
   - name: Install Docker Engine
     yum: name=docker-engine state=latest
@@ -51,19 +51,23 @@
 
   - debug: msg="the IP address is {{ host_ip.stdout }}"
 
-  - name: Obtain UCP Container ID
-    shell: docker ps | grep docker/ucp | grep -v docker/ucp- | awk '{print $1}'
-    register: container_id
-
-  - debug: msg="the container ID is {{ container_id.stdout }}"
-
-  - name: Stop existing UCP container
-    shell: 'docker kill {{ container_id.stdout }}'
-    ignore_errors: yes
-
-  - name: Delete existing UCP container
-    shell: 'docker rm {{ container_id.stdout }}'
-    ignore_errors: yes
-
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp install -i --host-address {{ host_ip.stdout }} --fresh-install'
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp install --host-address {{ host_ip.stdout }}'
+    ignore_errors: yes
+
+  - name: Retrieve UCP Instance ID
+    shell: docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp  id | grep -v INFO
+    register: ucp_instance_id
+
+  - debug: msg="the UCP instance ID is {{ ucp_instance_id }}"
+  - name: Obtain fingerprint
+    shell: docker run --rm -i --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp  fingerprint 2>/dev/null | awk '{print $2}' | cut -f2 -d= > /tmp/fingerprint
+
+  - name: Copy fingerprint to desktop
+    fetch: src=/tmp/fingerprint dest=/tmp/ flat=yes
+
+  - name: Back up configuration
+    shell: docker run --rm --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp backup --root-ca-only --passphrase "dockerSecret2016" --id {{ ucp_instance_id.stdout }} > /tmp/backup.tar
+
+  - name: Copy configuration to desktop
+    fetch: src=/tmp/backup.tar dest=/tmp/backup.tar

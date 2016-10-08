@@ -240,7 +240,7 @@ function configure_ucp_secondaries {
   done
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/ucp-secondary.yaml
+  ansible-playbook -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "url=https://$UCP1_IP"
 }
 
 function configure_dtr_primary {
@@ -287,15 +287,12 @@ echo Using the following SoftLayer configuration
 slcli config show
 
 create_ucps
-create_dtrs
-
-# Generate SSH key
-#yes | ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+#create_dtrs
 
 update_hosts_file
 
-configure_ucp_primary
-#configure_ucp_secondaries
+#configure_ucp_primary
+configure_ucp_secondaries
 #configure_dtr_primary
 #configure_dtr_secondaries
 
