@@ -1,0 +1,42 @@
+---
+  - name: Updating YUM
+    yum: name=* state=latest
+
+  - name: Install GCC
+    yum: name=gcc state=latest
+  
+  - name: Install Perl
+    yum: name=perl state=latest
+
+  - name: Install Old openssl
+    yum: name=openssl state=latest
+
+  - name: check openssl version
+    shell: "openssl version"
+    ignore_errors: yes
+    register: openssl_version_query
+    tags: openssl
+
+  - name: Install Open SSL
+    script: install_open_ssl.sh
+    when: openssl_version_query.stdout.find('1.0.2j') == -1
+    tags: openssl
+
+  - name: Add Docker RPM Key
+    shell: 'sudo rpm --import "https://sks-keyservers.net/pks/lookup?op=get&search=0xee6d536cf7dc86e2d7d56f59a178ac6c6238f52e"'
+    
+  - name: Install YUM Utils
+    yum: name=yum-utils state=latest
+
+  - name: Update YUM Config Manager
+    shell: "yum-config-manager --add-repo https://packages.docker.com/1.11/yum/repo/main/centos/7"
+
+  - name: Install Docker Engine
+    yum: name=docker-engine state=latest
+
+  - name: Enable Docker Service
+    shell: "systemctl enable docker.service"
+
+  - name: Start Docker Service
+    shell: "systemctl start docker.service"
+
