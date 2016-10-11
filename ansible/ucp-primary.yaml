@@ -10,8 +10,10 @@
 
   - debug: msg="the IP address is {{ host_ip.stdout }}"
 
+  - debug: msg="The License file is {{ ucp_license_file }}"
+
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp install --host-address {{ host_ip.stdout }}'
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v {{ ucp_license_file }}:/docker_subscription.lic docker/ucp install --host-address {{ host_ip.stdout }}'
     ignore_errors: yes
 
   - name: Retrieve UCP Instance ID

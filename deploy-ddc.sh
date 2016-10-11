@@ -213,7 +213,8 @@ function configure_ucp_primary {
   configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
   # Execute kube-master playbook
-  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml
+echo UCP License file: $UCP_LICENSE_FILE
+  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE
 }
 
 # Args $1 Node name
@@ -292,7 +293,7 @@ create_ucps
 update_hosts_file
 
 configure_ucp_primary
-configure_ucp_secondaries
+#configure_ucp_secondaries
 #configure_dtr_primary
 #configure_dtr_secondaries
 
