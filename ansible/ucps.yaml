@@ -1,0 +1,6 @@
+---
+- hosts: ucp-primary, ucp-secondary
+  remote_user: root
+  tasks:
+  - name: Run engine-discovery
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp engine-discovery --update'

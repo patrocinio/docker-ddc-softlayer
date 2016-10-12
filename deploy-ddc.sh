@@ -244,6 +244,12 @@ function configure_ucp_secondaries {
   ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "url=https://$UCP1_IP"
 }
 
+function configure_ucps {
+  # Execute kube-master playbook
+  ansible-playbook -v -i $HOSTS ansible/ucps.yaml
+}
+
+
 function configure_dtr_primary {
 echo Configuring nodes
 configure_node "${DTR_PREFIX}1"
@@ -293,7 +299,8 @@ create_ucps
 update_hosts_file
 
 configure_ucp_primary
-#configure_ucp_secondaries
+configure_ucp_secondaries
+configure_ucps
 #configure_dtr_primary
 #configure_dtr_secondaries
 
