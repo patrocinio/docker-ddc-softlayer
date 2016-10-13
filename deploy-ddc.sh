@@ -5,6 +5,7 @@
 UCP_PREFIX=ucp-
 DTR_PREFIX=dtr-
 HOSTS=/tmp/ansible-hosts
+TEMP_FILE=/tmp/deploy-ddc.out
 
 # This var is not used anymore
 TIMEOUT=600
@@ -71,7 +72,6 @@ function get_server_id {
 # Args: $1: name
 function create_node {
   # Check whether ucp exists
-  TEMP_FILE=/tmp/deploy-ddc.out
   slcli $CLI_TYPE list --hostname $1 --domain $DOMAIN | grep $1 > $TEMP_FILE
   COUNT=`wc $TEMP_FILE | awk '{print $1}'`
 
@@ -255,7 +255,7 @@ echo Configuring nodes
 configure_node "${DTR_PREFIX}1"
 
 # Execute kube-master playbook
-ansible-playbook -i $HOSTS ansible/dtr-primary.yaml
+ansible-playbook -i $HOSTS ansible/dtr-primary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
 }
 
 function configure_dtr_secondaries {
@@ -266,7 +266,7 @@ function configure_dtr_secondaries {
   done
 
   # Execute kube-master playbook
-  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml
+  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
 }
 
 function create_dtrs {
@@ -293,15 +293,15 @@ echo "timeout = 0" >> ~/.softlayer
 echo Using the following SoftLayer configuration
 slcli config show
 
-create_ucps
+#create_ucps
 #create_dtrs
 
 update_hosts_file
 
-configure_ucp_primary
-configure_ucp_secondaries
-configure_ucps
+#configure_ucp_primary
+#configure_ucp_secondaries
+#configure_ucps
 #configure_dtr_primary
-#configure_dtr_secondaries
+configure_dtr_secondaries
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"

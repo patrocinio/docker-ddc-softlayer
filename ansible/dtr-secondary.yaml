@@ -3,3 +3,26 @@
   remote_user: root
   tasks:
   - include: docker-engine.yaml
+
+  - debug: msg="UCP URL is {{ url }}"
+
+  - name: Download UCP certificate
+    get_url:
+      url: "{{ url }}/ca"
+      dest: /tmp/ucp-ca.pem
+      validate_certs: no
+
+  - name: Obtain IP address
+    shell: grep {{ ansible_fqdn }} /etc/hosts | awk '{print $1}'
+    register: host_ip
+
+  - name: Copy fingerprint
+    copy: src=/tmp/fingerprint dest=/root/fingerprint
+
+  - name: Join Docker cluster
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /root/backup.tar:/backup.tar docker/ucp join  --admin-username admin --admin-password orca --url {{ url }} --fingerprint `cat /root/fingerprint`'
+    ignore_errors: yes
+
+  - name: Install DTR
+    shell: docker run -it --rm docker/dtr join --ucp-url {{ url }} --ucp-node {{ inventory_hostname }}.{{ domain }} --dtr-external-url https://{{ host_ip.stdout }} --ucp-username admin --ucp-password orca --ucp-ca "$(cat /tmp/ucp-ca.pem)"
+
