@@ -4,6 +4,7 @@
 
 UCP_PREFIX=ucp-
 DTR_PREFIX=dtr-
+NODE_PREFIX=node-
 HOSTS=/tmp/ansible-hosts
 TEMP_FILE=/tmp/deploy-ddc.out
 
@@ -160,6 +161,15 @@ function update_hosts_file {
     export DTR_${x}_IP=$IP_ADDRESS
     echo "${DTR_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
   done
+
+  echo "[node]" >> $HOSTS
+  for(( x=1; x <= ${NUM_NODES}; x++))
+  do
+    obtain_ip "${NODE_PREFIX}${x}"
+    export NODE_${x}_IP=$IP_ADDRESS
+    echo "${NODE_PREFIX}${x} ansible_host=$IP_ADDRESS ansible_user=root" >> $HOSTS
+  done
+
 }
 
 #Args: $1: PASSWORD, $2: IP Address
@@ -251,37 +261,59 @@ function configure_ucps {
 
 
 function configure_dtr_primary {
-echo Configuring nodes
+echo Configuring primary DTR
 configure_node "${DTR_PREFIX}1"
 
-# Execute kube-master playbook
+# Execute dtr-primary playbook
 ansible-playbook -i $HOSTS ansible/dtr-primary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
 }
 
 function configure_dtr_secondaries {
-  echo Configuring nodes
+  echo Configuring other DTRs
   for(( x=2; x <= ${NUM_DTRS}; x++))
   do
     configure_node "${DTR_PREFIX}${x}"
   done
 
-  # Execute kube-master playbook
+  # Execute dtr-secondary playbook
   ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
 }
 
-function create_dtrs {
-  for(( x=1; x <= ${NUM_DTRS}; x++))
+function configure_nodes {
+  echo Configuring nodes
+  for(( x=1; x <= ${NUM_NODES}; x++))
   do
-    create_node "${DTR_PREFIX}${x}"
+    configure_node "${NODE_PREFIX}${x}"
+  done
+
+  # Execute node playbook
+  ansible-playbook -i $HOSTS ansible/node.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
+}
+
+
+
+#Args $1: number $2: prefix
+function create_machines {
+  for(( x=1; x <= $1; x++))
+  do
+    create_node "$2${x}"
   done
 }
 
-function create_ucps {
-  for(( x=1; x <= ${NUM_UCPS}; x++))
-  do
-    create_node "${UCP_PREFIX}${x}"
-  done
+
+function create_dtrs {
+  create_machines ${NUM_DTRS} ${DTR_PREFIX}
 }
+
+function create_ucps {
+  create_machines ${NUM_UCPS} ${UCP_PREFIX}
+}
+
+function create_nodes {
+  create_machines ${NUM_NODES} ${NODE_PREFIX}
+}
+
+
 
 # Authenticates to SL
 echo "[softlayer]" > ~/.softlayer
@@ -293,15 +325,19 @@ echo "timeout = 0" >> ~/.softlayer
 echo Using the following SoftLayer configuration
 slcli config show
 
-#create_ucps
-#create_dtrs
+create_ucps
+create_dtrs
+create_nodes
 
 update_hosts_file
 
-#configure_ucp_primary
-#configure_ucp_secondaries
-#configure_ucps
-#configure_dtr_primary
+configure_ucp_primary
+configure_ucp_secondaries
+configure_ucps
+configure_dtr_primary
 configure_dtr_secondaries
+configure_nodes
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"
+
+
