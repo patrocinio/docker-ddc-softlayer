@@ -12,8 +12,11 @@
 
   - debug: msg="The License file is {{ ucp_license_file }}"
 
+  - name: Copy license file
+    copy: src={{ ucp_license_file }} dest=/tmp/docker_subscription.lic
+
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v {{ ucp_license_file }}:/docker_subscription.lic docker/ucp install --host-address {{ host_ip.stdout }}'
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/docker_subscription.lic:/docker_subscription.lic docker/ucp install --host-address {{ host_ip.stdout }}'
     ignore_errors: yes
 
   - name: Retrieve UCP Instance ID
