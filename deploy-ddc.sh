@@ -179,7 +179,7 @@ function set_ssh_key {
 
   # Log in to the machine
 
-  sshpass -p $1 ssh-copy-id -o 'StrictHostKeyChecking=no' root@$2
+  sshpass -p $1 ssh-copy-id -i $SSH_IDENTITY_FILE -o 'StrictHostKeyChecking=no' root@$2
 }
 
 #Args: $1: hostname $2: IP address
@@ -223,8 +223,9 @@ function configure_ucp_primary {
   configure_ucp ${UCP_PREFIX}1 $UCP1_IP
 
   # Execute kube-master playbook
-echo UCP License file: $UCP_LICENSE_FILE
-  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE
+  echo UCP License file: $UCP_LICENSE_FILE
+  set -x
+  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE --private-key=$SSH_PRIVATE_KEY_FILE
 }
 
 # Args $1 Node name
@@ -251,6 +252,7 @@ function configure_ucp_secondaries {
   done
 
   # Execute kube-master playbook
+  set -x
   ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "url=https://$UCP1_IP"
 }
 
@@ -332,11 +334,11 @@ create_nodes
 update_hosts_file
 
 configure_ucp_primary
-configure_ucp_secondaries
-configure_ucps
-configure_dtr_primary
-configure_dtr_secondaries
-configure_nodes
+#configure_ucp_secondaries
+#configure_ucps
+#configure_dtr_primary
+#configure_dtr_secondaries
+#configure_nodes
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"
 
