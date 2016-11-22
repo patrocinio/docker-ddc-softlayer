@@ -251,7 +251,7 @@ function configure_ucp_secondaries {
   done
 
   # Execute kube-master playbook
-  ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "url=https://$UCP1_IP"
+  ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "ucp1=$UCP1_IP"
 }
 
 function configure_ucps {
