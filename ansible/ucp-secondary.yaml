@@ -8,8 +8,8 @@
     copy: src=/tmp/backup.tar dest=/root/backup.tar
 
   - name: Copy token
-    copy: src=/tmp/token dest=/root/token
+    copy: src=/tmp/manager-token dest=/root/manager-token
 
 
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker swarm join --token `cat /root/token` {{ ucp1 }}:2377'
+    shell: 'docker swarm join --token `cat /root/manager-token` {{ ucp1 }}:2377'

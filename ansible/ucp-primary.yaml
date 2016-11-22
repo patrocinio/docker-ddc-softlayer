@@ -26,10 +26,16 @@
   - debug: msg="the UCP instance ID is {{ ucp_instance_id }}"
 
   - name: Obtain manager token
-    shell: docker swarm join-token manager | grep token | awk '{print $2}' > /tmp/token
+    shell: docker swarm join-token manager | grep token | awk '{print $2}' > /tmp/manager-token
 
-  - name: Copy fingerprint to desktop
-    fetch: src=/tmp/token dest=/tmp/ flat=yes
+  - name: Copy manager token to desktop
+    fetch: src=/tmp/manager-token dest=/tmp/ flat=yes
+
+  - name: Obtain worker token
+    shell: docker swarm join-token worker | grep token | awk '{print $2}' > /tmp/worker-token
+
+  - name: Copy worker token to desktop
+    fetch: src=/tmp/worker-token dest=/tmp/ flat=yes
 
   - name: Back up configuration
     shell: docker run --rm --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp backup --root-ca-only --passphrase "dockerSecret2016" --id {{ ucp_instance_id.stdout }} > /tmp/backup.tar
