@@ -20,7 +20,7 @@
     copy: src=/tmp/token dest=/root/token
 
   - name: Join Docker cluster
-    shell: 'docker swarm join `cat /root/token`'
+    shell: 'docker swarm join --token `cat /root/token`'
     ignore_errors: yes
 
   - name: Install DTR

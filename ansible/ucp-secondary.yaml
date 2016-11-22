@@ -7,9 +7,9 @@
   - name: Copy configuration file
     copy: src=/tmp/backup.tar dest=/root/backup.tar
 
-  - name: Copy fingerprint
+  - name: Copy token
     copy: src=/tmp/token dest=/root/token
 
 
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /root/backup.tar:/backup.tar docker/ucp join --replica --passphrase "dockerSecret2016" --url {{ url }} --fingerprint `cat /root/token` --admin-username admin --admin-password orca'
+    shell: 'docker swarm join --token `cat /root/token`'
