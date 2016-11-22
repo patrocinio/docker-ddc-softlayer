@@ -16,11 +16,11 @@
     shell: grep {{ ansible_fqdn }} /etc/hosts | awk '{print $1}'
     register: host_ip
 
-  - name: Copy fingerprint
-    copy: src=/tmp/fingerprint dest=/root/fingerprint
+  - name: Copy manager token
+    copy: src=/tmp/token dest=/root/token
 
   - name: Join Docker cluster
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /root/backup.tar:/backup.tar docker/ucp join  --admin-username admin --admin-password orca --url {{ url }} --fingerprint `cat /root/fingerprint`'
+    shell: 'docker swarm join `cat /root/token`'
     ignore_errors: yes
 
   - name: Install DTR
