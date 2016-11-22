@@ -3,7 +3,9 @@
   remote_user: root
   tasks:
   - include: docker-engine.yaml
+
   - debug: msg="UCP URL is {{ url }}"
+
   - name: Download UCP certificate
     get_url:
       url: "{{ url }}/ca"
