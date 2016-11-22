@@ -12,4 +12,4 @@
 
 
   - name: Install Docker UCP. It will take a few minutes...
-shell: 'docker swarm join --token `cat /root/token` {{ ucp1 }}:2377'
+    shell: 'docker swarm join --token `cat /root/token` {{ ucp1 }}:2377'
