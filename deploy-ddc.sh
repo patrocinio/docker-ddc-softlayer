@@ -331,7 +331,7 @@ create_nodes
 
 update_hosts_file
 
-configure_ucp_primary
+#configure_ucp_primary
 configure_ucp_secondaries
 #configure_ucps
 #configure_dtr_primary
