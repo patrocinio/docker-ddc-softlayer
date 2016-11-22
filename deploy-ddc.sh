@@ -224,7 +224,6 @@ function configure_ucp_primary {
 
   # Execute kube-master playbook
   echo UCP License file: $UCP_LICENSE_FILE
-  set -x
   ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE --private-key=$SSH_PRIVATE_KEY_FILE
 }
 
@@ -252,7 +251,6 @@ function configure_ucp_secondaries {
   done
 
   # Execute kube-master playbook
-  set -x
   ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "url=https://$UCP1_IP"
 }
 
@@ -333,12 +331,12 @@ create_nodes
 
 update_hosts_file
 
-configure_ucp_primary
+#configure_ucp_primary
 configure_ucp_secondaries
-configure_ucps
-configure_dtr_primary
-configure_dtr_secondaries
-configure_nodes
+#configure_ucps
+#configure_dtr_primary
+#configure_dtr_secondaries
+#configure_nodes
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"
 

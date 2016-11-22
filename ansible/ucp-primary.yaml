@@ -24,11 +24,12 @@
     register: ucp_instance_id
 
   - debug: msg="the UCP instance ID is {{ ucp_instance_id }}"
-  - name: Obtain fingerprint
-    shell: docker run --rm -i --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp  fingerprint 2>/dev/null | awk '{print $2}' | cut -f2 -d= > /tmp/fingerprint
+
+  - name: Obtain manager token
+    shell: docker swarm join-token manager | grep token | awk '{print $2}' > /tmp/token
 
   - name: Copy fingerprint to desktop
-    fetch: src=/tmp/fingerprint dest=/tmp/ flat=yes
+    fetch: src=/tmp/token dest=/tmp/ flat=yes
 
   - name: Back up configuration
     shell: docker run --rm --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp backup --root-ca-only --passphrase "dockerSecret2016" --id {{ ucp_instance_id.stdout }} > /tmp/backup.tar

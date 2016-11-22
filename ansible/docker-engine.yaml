@@ -29,7 +29,7 @@
     yum: name=yum-utils state=latest
 
   - name: Update YUM Config Manager
-    shell: "yum-config-manager --add-repo https://packages.docker.com/1.11/yum/repo/main/centos/7"
+    shell: "yum-config-manager --add-repo https://packages.docker.com/1.12/yum/repo/main/centos/7"
 
   - name: Install Docker Engine
     yum: name=docker-engine state=latest
