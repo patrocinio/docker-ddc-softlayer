@@ -276,7 +276,7 @@ function configure_dtr_secondaries {
   done
 
   # Execute dtr-secondary playbook
-  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
+  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN ucp1=$UCP1_IP"
 }
 
 function configure_nodes {
