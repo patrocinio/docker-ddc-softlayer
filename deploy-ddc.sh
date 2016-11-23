@@ -265,7 +265,7 @@ echo Configuring primary DTR
 configure_node "${DTR_PREFIX}1"
 
 # Execute dtr-primary playbook
-ansible-playbook -i $HOSTS ansible/dtr-primary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
+ansible-playbook -i $HOSTS ansible/dtr-primary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN ucp1=$UCP1_IP"
 }
 
 function configure_dtr_secondaries {
