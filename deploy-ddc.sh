@@ -333,7 +333,7 @@ update_hosts_file
 
 #configure_ucp_primary
 #configure_ucp_secondaries
-#configure_ucps
+# No longer needed -- configure_ucps
 configure_dtr_primary
 #configure_dtr_secondaries
 #configure_nodes
