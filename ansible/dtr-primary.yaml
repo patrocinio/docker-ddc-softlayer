@@ -25,4 +25,4 @@
 
 
   - name: Install DTR
-    shell: docker run -it --rm docker/dtr install --ucp-url {{ url }} --ucp-node dtr-1.{{ domain }} --dtr-external-url https://{{ host_ip.stdout }} --ucp-username admin --ucp-password orca --ucp-ca "$(cat /tmp/ucp-ca.pem)"
+    shell: docker run -it --rm docker/dtr install --ucp-url {{ url }} --ucp-node dtr-1.{{ domain }} --dtr-external-url https://{{ host_ip.stdout }} --ucp-username admin --ucp-password c4senation --ucp-ca "$(cat /tmp/ucp-ca.pem)" --ucp-insecure-tls
