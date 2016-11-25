@@ -12,11 +12,13 @@
 
   - debug: msg="The License file is {{ ucp_license_file }}"
 
+  - debug: msg="The UCD passcode is {{ ucp_password }}"
+
   - name: Copy license file
     copy: src={{ ucp_license_file }} dest=/tmp/docker_subscription.lic
 
   - name: Install Docker UCP. It will take a few minutes...
-    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/docker_subscription.lic:/docker_subscription.lic docker/ucp install --host-address {{ host_ip.stdout }}'
+    shell: 'docker run --rm -it --name ucp -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/docker_subscription.lic:/docker_subscription.lic docker/ucp install --host-address {{ host_ip.stdout }} --admin-username admin --admin-password {{ ucp_password }}'
     ignore_errors: yes
 
   - name: Retrieve UCP Instance ID
@@ -40,5 +42,5 @@
   - name: Back up configuration
     shell: docker run --rm --name ucp -v /var/run/docker.sock:/var/run/docker.sock docker/ucp backup --root-ca-only --passphrase "dockerSecret2016" --id {{ ucp_instance_id.stdout }} > /tmp/backup.tar
 
-  - name: Copy configuration to desktop
-    fetch: src=/tmp/backup.tar dest=/tmp/ flat=yes
+#  - name: Copy configuration to desktop
+#    fetch: src=/tmp/backup.tar dest=/tmp/ flat=yes
