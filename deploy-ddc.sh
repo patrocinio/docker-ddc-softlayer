@@ -331,12 +331,12 @@ create_nodes
 
 update_hosts_file
 
-#configure_ucp_primary
-#configure_ucp_secondaries
+configure_ucp_primary
+configure_ucp_secondaries
 # No longer needed -- configure_ucps
-#configure_dtr_primary
+configure_dtr_primary
 configure_dtr_secondaries
-#configure_nodes
+configure_nodes
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/orca"
 
