@@ -4,8 +4,8 @@
   tasks:
   - include: docker-engine.yaml
 
-  - name: Copy configuration file
-    copy: src=/tmp/backup.tar dest=/root/backup.tar
+#  - name: Copy configuration file
+#    copy: src=/tmp/backup.tar dest=/root/backup.tar
 
   - name: Copy token
     copy: src=/tmp/manager-token dest=/root/manager-token
