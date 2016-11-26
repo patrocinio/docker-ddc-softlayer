@@ -13,11 +13,19 @@ NOTE:  If you encounter SSH issues running from Ubuntu, install `sudo pip instal
 Follow this procedure:
 
 1. First clone this project: `git clone https://github.com/patrocinio/docker-ddc-softlayer.git`
-2. Edit the docker-ddc.cfg file to enter the following SoftLayer configuration
-3. Mandatory fields:
-   * USER
-   * API_KEY: Check https://knowledgelayer.softlayer.com/procedure/generate-api-key to see how you can generate an API key
-* Optional ones:
+2. Edit the file ~/.softlayer to contain the following information:
+
+```
+[softlayer]
+username = <IBM Cloud user name>
+api_key = <IBM Cloud API key>
+endpoint_url = https://api.softlayer.com/xmlrpc/v3.1/
+timeout = 0
+```
+
+Check https://knowledgelayer.softlayer.com/procedure/generate-api-key to see how you can generate an API key
+
+3. Optionally, edit the docker-ddc.cfg file to contain the following SoftLayer configuration
    * DATACENTER: Run the following command to obtain the data center code: `slcli vs create-options | grep datacenter`
    * DOMAIN: hostname domain
    * SERVER_TYPE: bare for bare metal; anything else for virtual servers
@@ -29,7 +37,7 @@ Follow this procedure:
    * PUBLIC_VLAN: Define the public VLAN number
    * PRIVATE_VLAN: Define the private VLAN number
 
-3. Run the following command:
+4. Run the following command:
 `deploy-ddc.sh`
 
 Simple, no?
