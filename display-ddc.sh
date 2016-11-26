@@ -4,13 +4,6 @@
 
 . ./docker-ddc.cfg
 
-# Authenticates to SL
-echo "[softlayer]" > ~/.softlayer
-echo "username = $USER" >> ~/.softlayer
-echo "api_key = $API_KEY" >> ~/.softlayer
-echo "endpoint_url = $ENDPOINT" >> ~/.softlayer
-echo "timeout = 0" >> ~/.softlayer
-
 echo Using the following SoftLayer configuration
 slcli config show
 
