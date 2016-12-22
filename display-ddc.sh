@@ -7,6 +7,8 @@
 echo Using the following SoftLayer configuration
 slcli config show
 
+echo Domain: $DOMAIN
+
 # Set the server type
 if [ $SERVER_TYPE  == "bare" ]; then
   CLI_TYPE=server

@@ -57,8 +57,9 @@ function create_server {
   build_vlan_arg "--vlan-public" $PUBLIC_VLAN
   PUBLIC_ARG=$VLAN_ARG
 
+   # Creates with 2 disks
   echo "Deploying $SERVER_MESSAGE $1"
-  yes | slcli $CLI_TYPE create --hostname $1 --domain $DOMAIN $SPEC --datacenter $DATACENTER --billing hourly  $PRIVATE_ARG $PUBLIC_ARG | tee $TEMP_FILE
+  yes | slcli $CLI_TYPE create --hostname $1 --domain $DOMAIN $SPEC --datacenter $DATACENTER --billing hourly  $PRIVATE_ARG $PUBLIC_ARG --disk 25 --disk 25 | tee $TEMP_FILE
 }
 
 # Args: $1: name
