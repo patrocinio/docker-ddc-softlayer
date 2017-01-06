@@ -30,7 +30,6 @@
 
   - name: Update YUM Config Manager
     shell: "yum-config-manager --add-repo https://packages.docker.com/1.12/yum/repo/main/centos/7"
-#    shell: "yum-config-manager --add-repo https://yum.dockerproject.org/repo/main/centos/7/"
 
   - name: Install Docker Engine
     yum: name=docker-engine state=latest disable_gpg_check=yes
@@ -41,3 +40,12 @@
   - name: Start Docker Service
     shell: "systemctl start docker.service"
 
+  - name: Install Kernel devel
+    yum: name=kernel-devel state=latest
+    when: sysdig_access_key is defined
+
+  - name: Install sysdig 
+    shell: docker run -d --name sysdig-agent --privileged --net host --pid host -e ACCESS_KEY={{ sysdig_access_key }} \
+      -e TAGS=env:docker-data-center -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro \
+      -v /boot:/host/boot:ro -v /lib/modules:/host/lib/modules:ro -v /usr:/host/usr:ro sysdig/agent
+    when: sysdig_access_key is defined

@@ -27,7 +27,7 @@ if [ $SERVER_TYPE  == "bare" ]; then
 else
   SERVER_MESSAGE="virtual server"
   CLI_TYPE=vs
-  SPEC="--cpu $CPU --memory $MEMORY --os CENTOS_LATEST"
+  SPEC="--cpu $CPU --memory $MEMORY --os CENTOS_LATEST --disk 25 --disk 25"
   STATUS_FIELD="state"
   STATUS_VALUE="RUNNING"
 fi
@@ -59,7 +59,9 @@ function create_server {
 
    # Creates with 2 disks
   echo "Deploying $SERVER_MESSAGE $1"
-  yes | slcli $CLI_TYPE create --hostname $1 --domain $DOMAIN $SPEC --datacenter $DATACENTER --billing hourly  $PRIVATE_ARG $PUBLIC_ARG --disk 25 --disk 25 | tee $TEMP_FILE
+  COMMAND="slcli $CLI_TYPE create --hostname $1 --domain $DOMAIN $SPEC --datacenter $DATACENTER --billing hourly  $PRIVATE_ARG $PUBLIC_ARG" 
+  echo "Running $COMMAND"
+  yes | $COMMAND | tee $TEMP_FILE
 }
 
 # Args: $1: name
@@ -225,7 +227,8 @@ function configure_ucp_primary {
 
   # Execute kube-master playbook
   echo UCP License file: $UCP_LICENSE_FILE
-  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE --private-key=$SSH_PRIVATE_KEY_FILE  --extra-vars "ucp_password=$UCP_PASSWORD"
+  ansible-playbook -v -i $HOSTS ansible/ucp-primary.yaml  -e ucp_license_file=$UCP_LICENSE_FILE --private-key=$SSH_PRIVATE_KEY_FILE  \
+  -e ucp_password=$UCP_PASSWORD -e sysdig_access_key=$SYSDIG_ACCESS_KEY
 }
 
 # Args $1 Node name
@@ -252,13 +255,13 @@ function configure_ucp_secondaries {
   done
 
   # Execute kube-master playbook
-  ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml --extra-vars "ucp1=$UCP1_IP"
+  ansible-playbook -v -i $HOSTS ansible/ucp-secondary.yaml -e ucp1=$UCP1_IP -e sysdig_access_key=$SYSDIG_ACCESS_KEY
 }
 
-function configure_ucps {
-  # Execute kube-master playbook
-  ansible-playbook -v -i $HOSTS ansible/ucps.yaml
-}
+#function configure_ucps {
+#  # Execute kube-master playbook
+#  ansible-playbook -v -i $HOSTS ansible/ucps.yaml
+#}
 
 
 function configure_dtr_primary {
@@ -266,7 +269,7 @@ echo Configuring primary DTR
 configure_node "${DTR_PREFIX}1"
 
 # Execute dtr-primary playbook
-ansible-playbook -i $HOSTS ansible/dtr-primary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN ucp1=$UCP1_IP"
+ansible-playbook -i $HOSTS ansible/dtr-primary.yaml -e url=https://$UCP1_IP -e domain=$DOMAIN -e ucp1=$UCP1_IP -e sysdig_access_key=$SYSDIG_ACCESS_KEY
 }
 
 function configure_dtr_secondaries {
@@ -277,7 +280,7 @@ function configure_dtr_secondaries {
   done
 
   # Execute dtr-secondary playbook
-  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN ucp1=$UCP1_IP"
+  ansible-playbook -i $HOSTS ansible/dtr-secondary.yaml -e url=https://$UCP1_IP -e domain=$DOMAIN -e ucp1=$UCP1_IP -e sysdig_access_key=$SYSDIG_ACCESS_KEY
 }
 
 function configure_nodes {
@@ -288,7 +291,7 @@ function configure_nodes {
   done
 
   # Execute node playbook
-  ansible-playbook -i $HOSTS ansible/node.yaml --extra-vars "url=https://$UCP1_IP domain=$DOMAIN"
+  ansible-playbook -i $HOSTS ansible/node.yaml -e url=https://$UCP1_IP -e domain=$DOMAIN -e sysdig_access_key=$SYSDIG_ACCESS_KEY
 }
 
 
@@ -325,10 +328,10 @@ create_nodes
 update_hosts_file
 
 configure_ucp_primary
-configure_ucp_secondaries
-configure_dtr_primary
-configure_dtr_secondaries
-configure_nodes
+#configure_ucp_secondaries
+#configure_dtr_primary
+#configure_dtr_secondaries
+#configure_nodes
 
 echo "Congratulations! You can log in to your Docker Data Center environment at https://$UCP1_IP using admin/$UCD_PASSWORD"
 
