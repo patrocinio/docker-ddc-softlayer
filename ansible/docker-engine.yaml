@@ -19,7 +19,7 @@
 
   - name: Install Open SSL
     script: install_open_ssl.sh
-    when: openssl_version_query.stdout.find('1.0.2j') == -1
+    when: openssl_version_query.stdout.find('1.0.2k') == -1
     tags: openssl
 
   - name: Add Docker RPM Key
@@ -29,7 +29,7 @@
     yum: name=yum-utils state=latest
 
   - name: Update YUM Config Manager
-    shell: "yum-config-manager --add-repo https://packages.docker.com/1.12/yum/repo/main/centos/7"
+    shell: "yum-config-manager --add-repo https://packages.docker.com/1.13/yum/repo/main/centos/7"
 
   - name: Install Docker Engine
     yum: name=docker-engine state=latest disable_gpg_check=yes
@@ -49,3 +49,4 @@
       -e TAGS=env:docker-data-center -v /var/run/docker.sock:/host/var/run/docker.sock -v /dev:/host/dev -v /proc:/host/proc:ro \
       -v /boot:/host/boot:ro -v /lib/modules:/host/lib/modules:ro -v /usr:/host/usr:ro sysdig/agent
     when: sysdig_access_key is defined
+    ignore_errors: yes
