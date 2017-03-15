@@ -181,8 +181,7 @@ function set_ssh_key {
   ssh-keygen -R $2
 
   # Log in to the machine
-
-  sshpass -p $1 ssh-copy-id -i $SSH_IDENTITY_FILE -o 'StrictHostKeyChecking=no' root@$2
+  sshpass -p $1 ssh-copy-id -i $SSH_IDENTITY_FILE root@$2
 }
 
 #Args: $1: hostname $2: IP address
